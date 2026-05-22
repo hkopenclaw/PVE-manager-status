@@ -1,21 +1,21 @@
 #!/usr/bin/env bash
 
 # version: 2023.9.5
-#添加硬盘信息的控制变量，如果你想不显示硬盘信息就设置为false
-#NVME硬盘
+#添加硬碟訊息的控制變量，如果你不想顯示硬碟訊息就設置為false
+#NVME硬碟
 sNVMEInfo=true
-#固态和机械硬盘
+#固態和機械硬碟
 sODisksInfo=true
-#debug，显示修改后的内容，用于调试
+#debug，顯示修改後的內容，用於調試
 dmode=false
 
-#脚本路径
+#腳本路徑
 sdir=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)
 cd "$sdir"
 
 sname=$(basename "${BASH_SOURCE[0]}")
 sap=$sdir/$sname
-echo 脚本路径："$sap"
+echo 腳本路徑："$sap"
 
 #需要修改的文件
 np=/usr/share/perl5/PVE/API2/Nodes.pm
@@ -23,28 +23,28 @@ pvejs=/usr/share/pve-manager/js/pvemanagerlib.js
 plibjs=/usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js
 
 if ! command -v sensors > /dev/null; then
-	echo 你需要先安装 lm-sensors 和 linux-cpupower，脚本尝试给你自动安装
+	echo 你需要先安裝 lm-sensors 和 linux-cpupower，腳本嘗試給你自動安裝
 	if apt update ; apt install -y lm-sensors; then 
-		echo lm-sensors 安装成功
+		echo lm-sensors 安裝成功
 		
-		echo 尝试继续安装linux-cpupower获取功耗信息
+		echo 嘗試繼續安裝linux-cpupower獲取功耗訊息
 		if apt install -y linux-cpupower;then
-			echo linux-cpupower安装成功
+			echo linux-cpupower安裝成功
 		else
-			echo -e "linux-cpupower安装失败，可能无法正常获取功耗信息，你可以使用\033[34mapt update ; apt install linux-cpupower && modprobe msr && echo msr > /etc/modules-load.d/turbostat-msr.conf && chmod +s /usr/sbin/turbostat && echo 成功！\033[0m 手动安装"
+			echo -e "linux-cpupower安裝失敗，可能無法正常獲取功耗訊息，你可以使用\033[34mapt update ; apt install linux-cpupower && modprobe msr && echo msr > /etc/modules-load.d/turbostat-msr.conf && chmod +s /usr/sbin/turbostat && echo 成功！\033[0m 手動安裝"
 		fi
 	else
-		echo 脚本自动安装所需依赖失败
-		echo -e "请使用蓝色命令：\033[34mapt update ; apt install -y lm-sensors linux-cpupower && chmod +s /usr/sbin/turbostat && echo 成功！ \033[0m 手动安装后重新运行本脚本"
-		echo 脚本退出
+		echo 腳本自動安裝所需依賴失敗
+		echo -e "請使用藍色命令：\033[34mapt update ; apt install -y lm-sensors linux-cpupower && chmod +s /usr/sbin/turbostat && echo 成功！ \033[0m 手動安裝後重新運行本腳本"
+		echo 腳本退出
 		exit 1
 	fi
 fi
 
 
-#获取版本号
+#獲取版本號
 pvever=$(pveversion | awk -F"/" '{print $2}')
-echo "你的PVE版本号：$pvever"
+echo "你的PVE版本號：$pvever"
 
 restore() {
 	[ -e $np.$pvever.bak ]     && mv $np.$pvever.bak $np
@@ -53,20 +53,20 @@ restore() {
 }
 
 fail() {
-	echo "修改失败，可能不兼容你的pve版本：$pvever，开始还原"
+	echo "修改失敗，可能不兼容你的pve版本：$pvever，開始還原"
 	restore
-	echo 还原完成
+	echo 還原完成
 	exit 1
 }
 
-#还原修改
+#還原修改
 case $1 in 
 	restore)
 		restore
-		echo 已还原修改
+		echo 已還原修改
 		
 		if [ "$2" != 'remod' ];then 
-			echo -e "请刷新浏览器缓存：\033[31mShift+F5\033[0m"
+			echo -e "請刷新瀏覽器快取：\033[31mShift+F5\033[0m"
 			systemctl restart pveproxy
 		else 
 			echo -----
@@ -75,7 +75,7 @@ case $1 in
 		exit 0
 	;;
 	remod)
-		echo 强制重新修改
+		echo 強制重新修改
 		echo -----------
 		"$sap" restore remod > /dev/null 
 		"$sap"
@@ -83,14 +83,14 @@ case $1 in
 	;;
 esac
 
-#检测是否已经修改过
+#檢測是否已經修改過
 [ $(grep 'modbyshowtempfreq' $np $pvejs $plibjs | wc -l) -eq 3 ]  && {
 	echo -e "
-已经修改过，请勿重复修改
-如果没有生效，或者页面一直转圈圈
-请使用 \033[31mShift+F5\033[0m 刷新浏览器缓存
-如果一直异常，请执行：\033[31m\"$sap\" restore\033[0m 命令，可以还原修改
-如果想强制重新修改，请执行：\033[31m\"$sap\" remod\033[0m 命令，可以还原修改
+已經修改過，請勿重複修改
+如果沒有生效，或者頁面一直轉圈圈
+請使用 \033[31mShift+F5\033[0m 刷新瀏覽器快取
+如果一直異常，請執行：\033[31m\"$sap\" restore\033[0m 命令，可以還原修改
+如果想強制重新修改，請執行：\033[31m\"$sap\" remod\033[0m 命令，可以還原修改
 "
 	exit 1
 }
@@ -137,23 +137,23 @@ cat > $contentforpvejs << 'EOF'
 		itemId: 'thermal',
 		colspan: 2,
 		printBar: false,
-		title: gettext('温度(°C)'),
+		title: gettext('溫度(°C)'),
 		textField: 'thermalstate',
 		renderer:function(value){
-			//value进来的值是有换行符的
+			//value進來的值是有換行符的
 			console.log(value)
 			let b = value.trim().split(/\s+(?=^\w+-)/m).sort();
 			let c = b.map(function (v){
-				// 风扇转速数据，直接返回
+				// 風扇轉速數據，直接返回
 				let fandata = v.match(/(?<=:\s+)[1-9]\d*(?=\s+RPM\s+)/ig)
 				if ( fandata ) {
-					return '风扇: ' + fandata.join(';')
+					return '風扇: ' + fandata.join(';')
 				}
 			
 				let name = v.match(/^[^-]+/)[0].toUpperCase();
 				
 				let temp = v.match(/(?<=:\s+)[+-][\d.]+(?=.?°C)/g);
-				// 某些没有数据的传感器,不是温度的传感器
+				// 某些沒有數據的傳感器,不是溫度的傳感器
 				if ( temp ) {
 					temp = temp.map(v => Number(v).toFixed(0))
 					
@@ -179,7 +179,7 @@ cat > $contentforpvejs << 'EOF'
 			// 排除null值的
 			c=c.filter( v => ! /^null$/.test(v) )
 			//console.log(c);
-			//排序，把cpu温度放最前
+			//排序，把cpu溫度放最前
 			let cpuIdx = c.findIndex(v => /CPU/i.test(v) );
 			if (cpuIdx > 0) {
 				c.unshift(c.splice(cpuIdx, 1)[0]);
@@ -194,7 +194,7 @@ cat > $contentforpvejs << 'EOF'
 		  itemId: 'cpumhz',
 		  colspan: 2,
 		  printBar: false,
-		  title: gettext('CPU频率(GHz)'),
+		  title: gettext('CPU頻率(GHz)'),
 		  textField: 'cpuFreq',
 		  renderer:function(v){
 			//return v;
@@ -218,14 +218,14 @@ cat > $contentforpvejs << 'EOF'
 			let watt= v.match(/(?<=^pkgwatt:)[\d.]+$/im);
 			watt = watt? " | 功耗: " + (watt[0]/1).toFixed(1) + 'W' : '';
 			
-			return `${m2} | MAX: ${max} | MIN: ${min}${watt} | 调速器: ${gov}`
+			return `${m2} | MAX: ${max} | MIN: ${min}${watt} | 調速器: ${gov}`
 		 }
 	},
 EOF
 
 
-#检测nvme硬盘
-echo 检测系统中的NVME硬盘
+#檢測nvme硬碟
+echo 檢測系統中的NVME硬碟
 nvi=0
 if $sNVMEInfo;then
 	for nvme in $(ls /dev/nvme[0-9] 2> /dev/null); do
@@ -250,19 +250,19 @@ EOF
 					//名字
 					let model = v.model_name;
 					if (! model) {
-						return '找不到硬盘，直通或已被卸载';
+						return '找不到硬碟，直通或已被卸載';
 					}
-					// 温度
+					// 溫度
 					let temp = v.temperature?.current;
 					temp = ( temp !== undefined ) ? " | " + temp + '°C' : '' ;
 					
-					// 通电时间
+					// 通電時間
 					let pot = v.power_on_time?.hours;
 					let poth = v.power_cycle_count;
 					
-					pot = ( pot !== undefined ) ? (" | 通电: " + pot + '时' + ( poth ? ',次: '+ poth : '' )) : '';
+					pot = ( pot !== undefined ) ? (" | 通電: " + pot + '時' + ( poth ? ',次: '+ poth : '' )) : '';
 					
-					// 读写
+					// 讀寫
 					let log = v.nvme_smart_health_information_log;
 					let rw=''
 					let health=''
@@ -284,7 +284,7 @@ EOF
 						}
 					}
 
-					// smart状态
+					// smart狀態
 					let smart = v.smart_status?.passed;
 					if (smart === undefined ) {
 						smart = '';
@@ -297,7 +297,7 @@ EOF
 					//console.log(t);
 					return t;
 				}catch(e){
-					return '无法获得有效消息';
+					return '無法獲得有效消息';
 				};
 
 			 }
@@ -306,33 +306,33 @@ EOF
 		let nvi++
 	done
 fi
-echo "已添加 $nvi 块NVME硬盘"
+echo "已添加 $nvi 塊NVME硬碟"
 
 
 
-#检测机械键盘
-echo 检测系统中的SATA固态和机械硬盘
+#檢測機械鍵盤
+echo 檢測系統中的SATA固態和機械硬碟
 sdi=0
 if $sODisksInfo;then
 	for sd in $(ls /dev/sd[a-z] 2> /dev/null);do
 		chmod +s /usr/sbin/smartctl
 		chmod +s /usr/sbin/hdparm
-		#检测是否是真的机械键盘
+		#檢測是否是真的機械鍵盤
 		sdsn=$(awk -F '/' '{print $NF}' <<< $sd)
 		sdcr=/sys/block/$sdsn/queue/rotational
 		[ -f $sdcr ] || continue
 		
 		if [ "$(cat $sdcr)" = "0" ];then
 			hddisk=false
-			sdtype="固态硬盘$sdi"
+			sdtype="固態硬碟$sdi"
 		else
 			hddisk=true
-			sdtype="机械硬盘$sdi"
+			sdtype="機械硬碟$sdi"
 		fi
 		
-		#[] && 型条件判断，嵌套的条件判断的非 || 后面一定要写动作，否则会穿透到上一层的非条件
-		#机械/固态硬盘输出信息逻辑,
-		#如果硬盘不存在就输出空JSON
+		#[] && 型條件判斷，嵌套的條件判斷的非 || 後面一定要寫動作，否則會穿透到上一層的非條件
+		#機械/固態硬碟輸出訊息邏輯,
+		#如果硬碟不存在就輸出空JSON
 
 		cat >> $contentfornp << EOF
 	\$res->{sd$sdi} = \`
@@ -367,19 +367,19 @@ EOF
 					//名字
 					let model = v.model_name;
 					if (! model) {
-						return '找不到硬盘，直通或已被卸载';
+						return '找不到硬碟，直通或已被卸載';
 					}
-					// 温度
+					// 溫度
 					let temp = v.temperature?.current;
-					temp = ( temp !== undefined ) ? " | 温度: " + temp + '°C' : '' ;
+					temp = ( temp !== undefined ) ? " | 溫度: " + temp + '°C' : '' ;
 					
-					// 通电时间
+					// 通電時間
 					let pot = v.power_on_time?.hours;
 					let poth = v.power_cycle_count;
 					
-					pot = ( pot !== undefined ) ? (" | 通电: " + pot + '时' + ( poth ? ',次: '+ poth : '' )) : '';
+					pot = ( pot !== undefined ) ? (" | 通電: " + pot + '時' + ( poth ? ',次: '+ poth : '' )) : '';
 					
-					// smart状态
+					// smart狀態
 					let smart = v.smart_status?.passed;
 					if (smart === undefined ) {
 						smart = '';
@@ -392,7 +392,7 @@ EOF
 					//console.log(t);
 					return t;
 				}catch(e){
-					return '无法获得有效消息';
+					return '無法獲得有效消息';
 				};
 			 }
 		},
@@ -400,28 +400,28 @@ EOF
 		let sdi++
 	done
 fi
-echo "已添加 $sdi 块SATA固态和机械硬盘"
+echo "已添加 $sdi 塊SATA固態和機械硬碟"
 
-echo 开始修改nodes.pm文件
+echo 開始修改nodes.pm文件
 if ! grep -q 'modbyshowtempfreq' $np ;then
 	[ ! -e $np.$pvever.bak ] && cp $np $np.$pvever.bak
 	
-	if [ "$(sed -n "/PVE::pvecfg::version_text()/{=;p;q}" "$np")" ];then #确认修改点
-		#r追加文本后面必须跟回车，否则r 后面的文字都会被当成文件名，导致脚本出错
+	if [ "$(sed -n "/PVE::pvecfg::version_text()/{=;p;q}" "$np")" ];then #確認修改點
+		#r追加文本後面必須跟回車，否則r 後面的文字都會被當成文件名，導致腳本出錯
 		sed -i "/PVE::pvecfg::version_text()/{
 			r $contentfornp
 		}" $np
 		$dmode && sed -n "/PVE::pvecfg::version_text()/,+5p" $np
 	else
-		echo '找不到nodes.pm文件的修改点'
+		echo '找不到nodes.pm文件的修改點'
 		
 		fail
 	fi
 else
-	echo 已经修改过
+	echo 已經修改過
 fi
 
-echo 开始修改pvemanagerlib.js文件
+echo 開始修改pvemanagerlib.js文件
 if ! grep -q 'modbyshowtempfreq' $pvejs ;then
 	[ ! -e $pvejs.$pvever.bak ]  && cp $pvejs $pvejs.$pvever.bak
 	
@@ -435,25 +435,25 @@ if ! grep -q 'modbyshowtempfreq' $pvejs ;then
 		
 		$dmode && sed -n "/pveversion/,+8p" $pvejs
 	else
-		echo '找不到pvemanagerlib.js文件的修改点'
+		echo '找不到pvemanagerlib.js文件的修改點'
 		fail
 	fi
 
 
-	echo 修改页面高度
-	#统计加了几条
+	echo 修改頁面高度
+	#統計加了幾條
 	addRs=$(grep -c '\$res' $contentfornp)
 	addHei=$(( 28 * addRs))
-	$dmode && echo "添加了$addRs条内容,增加高度为:${addHei}px"
+	$dmode && echo "添加了$addRs條內容,增加高度為:${addHei}px"
 
 
 	#原高度300
-	echo 修改左栏高度
+	echo 修改左欄高度
 	if [ "$(sed -n '/widget.pveNodeStatus/,+4{
 			/height:/{=;p;q}
 		}' $pvejs)" ]; then 
 		
-		#获取原高度
+		#獲取原高度
 		wph=$(sed -n -E "/widget\.pveNodeStatus/,+4{
 			/height:/{s/[^0-9]*([0-9]+).*/\1/p;q}
 		}" $pvejs)
@@ -470,13 +470,13 @@ if ! grep -q 'modbyshowtempfreq' $pvejs ;then
 			}
 		}' $pvejs
 
-		#修改右边栏高度，让它和左边一样高，双栏的时候否则导致浮动出问题
+		#修改右邊欄高度，讓它和左邊一樣高，雙欄的時候否則導致浮動出問題
 		#原高度325
-		echo 修改右栏高度和左栏一致，解决浮动错位
+		echo 修改右欄高度和左欄一致，解決浮動錯位
 		if [ "$(sed -n '/nodeStatus:\s*nodeStatus/,+10{
 				/minHeight:/{=;p;q}
 			}' $pvejs)" ]; then 
-			#获取原高度
+			#獲取原高度
 			nph=$(sed -n -E '/nodeStatus:\s*nodeStatus/,+10{
 				/minHeight:/{s/[^0-9]*([0-9]+).*/\1/p;q}
 			}' "$pvejs")
@@ -494,25 +494,25 @@ if ! grep -q 'modbyshowtempfreq' $pvejs ;then
 			}' $pvejs
 
 		else
-			echo 右边栏高度找不到修改点，修改失败
+			echo 右邊欄高度找不到修改點，修改失敗
 			
 		fi
 
 	else
-		echo 找不到修改高度的修改点
+		echo 找不到修改高度的修改點
 		fail
 	fi
 
 else
-	echo 已经修改过
+	echo 已經修改過
 fi
 
 
-echo 温度，频率，硬盘信息相关修改已完成
+echo 溫度，頻率，硬碟訊息相關修改已完成
 echo ------------------------
 echo ------------------------
-echo 开始修改proxmoxlib.js文件
-echo 去除订阅弹窗
+echo 開始修改proxmoxlib.js文件
+echo 去除訂閱彈窗
 
 if ! grep -q 'modbyshowtempfreq' $plibjs ;then
 
@@ -530,16 +530,16 @@ if ! grep -q 'modbyshowtempfreq' $plibjs ;then
 		
 		$dmode && sed -n "/\/nodes\/localhost\/subscription/,+10p" $plibjs
 	else 
-		echo 找不到修改点，放弃修改这个
+		echo 找不到修改點，放棄修改這個
 	fi
 else
-	echo 已经修改过
+	echo 已經修改過
 fi
 echo -e "------------------------
 修改完成
-请刷新浏览器缓存：\033[31mShift+F5\033[0m
-如果你看到主页面提示连接错误或者没看到温度和频率，请按：\033[31mShift+F5\033[0m，刷新浏览器缓存！
-如果你对效果不满意，请执行：\033[31m\"$sap\" restore\033[0m 命令，可以还原修改
+請刷新瀏覽器快取：\033[31mShift+F5\033[0m
+如果你看到主頁面提示連接錯誤或者沒看到溫度和頻率，請按：\033[31mShift+F5\033[0m，刷新瀏覽器快取！
+如果你對效果不滿意，請執行：\033[31m\"$sap\" restore\033[0m 命令，可以還原修改
 "
 
 systemctl restart pveproxy
