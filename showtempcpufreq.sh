@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
 # version: 2023.9.5
-#添加硬碟訊息的控制變量，如果你不想顯示硬碟訊息就設置為false
+#新增硬碟訊息的控制變數，如果你不想顯示硬碟訊息就設定為false
 #NVME硬碟
 sNVMEInfo=true
 #固態和機械硬碟
 sODisksInfo=true
-#debug，顯示修改後的內容，用於調試
+#debug，顯示修改後的內容，用於除錯
 dmode=false
 
 #腳本路徑
@@ -17,7 +17,7 @@ sname=$(basename "${BASH_SOURCE[0]}")
 sap=$sdir/$sname
 echo 腳本路徑："$sap"
 
-#需要修改的文件
+#需要修改的檔案
 np=/usr/share/perl5/PVE/API2/Nodes.pm
 pvejs=/usr/share/pve-manager/js/pvemanagerlib.js
 plibjs=/usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js
@@ -66,7 +66,7 @@ case $1 in
 		echo 已還原修改
 		
 		if [ "$2" != 'remod' ];then 
-			echo -e "請刷新瀏覽器快取：\033[31mShift+F5\033[0m"
+			echo -e "請重新整理瀏覽器快取：\033[31mShift+F5\033[0m"
 			systemctl restart pveproxy
 		else 
 			echo -----
@@ -83,12 +83,12 @@ case $1 in
 	;;
 esac
 
-#檢測是否已經修改過
+#檢查是否已經修改過
 [ $(grep 'modbyshowtempfreq' $np $pvejs $plibjs | wc -l) -eq 3 ]  && {
 	echo -e "
 已經修改過，請勿重複修改
 如果沒有生效，或者頁面一直轉圈圈
-請使用 \033[31mShift+F5\033[0m 刷新瀏覽器快取
+請使用 \033[31mShift+F5\033[0m 重新整理瀏覽器快取
 如果一直異常，請執行：\033[31m\"$sap\" restore\033[0m 命令，可以還原修改
 如果想強制重新修改，請執行：\033[31m\"$sap\" remod\033[0m 命令，可以還原修改
 "
@@ -224,8 +224,8 @@ cat > $contentforpvejs << 'EOF'
 EOF
 
 
-#檢測nvme硬碟
-echo 檢測系統中的NVME硬碟
+#檢查nvme硬碟
+echo 檢查系統中的NVME硬碟
 nvi=0
 if $sNVMEInfo;then
 	for nvme in $(ls /dev/nvme[0-9] 2> /dev/null); do
@@ -250,7 +250,7 @@ EOF
 					//名字
 					let model = v.model_name;
 					if (! model) {
-						return '找不到硬碟，直通或已被卸載';
+						return '找不到硬碟，直通或已被取消掛載';
 					}
 					// 溫度
 					let temp = v.temperature?.current;
@@ -306,18 +306,18 @@ EOF
 		let nvi++
 	done
 fi
-echo "已添加 $nvi 塊NVME硬碟"
+echo "已新增 $nvi 個NVME硬碟"
 
 
 
-#檢測機械鍵盤
-echo 檢測系統中的SATA固態和機械硬碟
+#檢查機械硬碟
+echo 檢查系統中的SATA固態和機械硬碟
 sdi=0
 if $sODisksInfo;then
 	for sd in $(ls /dev/sd[a-z] 2> /dev/null);do
 		chmod +s /usr/sbin/smartctl
 		chmod +s /usr/sbin/hdparm
-		#檢測是否是真的機械鍵盤
+		#檢查是否是真的機械硬碟
 		sdsn=$(awk -F '/' '{print $NF}' <<< $sd)
 		sdcr=/sys/block/$sdsn/queue/rotational
 		[ -f $sdcr ] || continue
@@ -367,7 +367,7 @@ EOF
 					//名字
 					let model = v.model_name;
 					if (! model) {
-						return '找不到硬碟，直通或已被卸載';
+						return '找不到硬碟，直通或已被取消掛載';
 					}
 					// 溫度
 					let temp = v.temperature?.current;
@@ -400,20 +400,20 @@ EOF
 		let sdi++
 	done
 fi
-echo "已添加 $sdi 塊SATA固態和機械硬碟"
+echo "已新增 $sdi 個SATA固態和機械硬碟"
 
-echo 開始修改nodes.pm文件
+echo 開始修改nodes.pm檔案
 if ! grep -q 'modbyshowtempfreq' $np ;then
 	[ ! -e $np.$pvever.bak ] && cp $np $np.$pvever.bak
 	
 	if [ "$(sed -n "/PVE::pvecfg::version_text()/{=;p;q}" "$np")" ];then #確認修改點
-		#r追加文本後面必須跟回車，否則r 後面的文字都會被當成文件名，導致腳本出錯
+		#r追加文本後面必須跟回車，否則r 後面的文字都會被當成檔案名，導致腳本出錯
 		sed -i "/PVE::pvecfg::version_text()/{
 			r $contentfornp
 		}" $np
 		$dmode && sed -n "/PVE::pvecfg::version_text()/,+5p" $np
 	else
-		echo '找不到nodes.pm文件的修改點'
+		echo '找不到nodes.pm檔案的修改點'
 		
 		fail
 	fi
@@ -421,7 +421,7 @@ else
 	echo 已經修改過
 fi
 
-echo 開始修改pvemanagerlib.js文件
+echo 開始修改pvemanagerlib.js檔案
 if ! grep -q 'modbyshowtempfreq' $pvejs ;then
 	[ ! -e $pvejs.$pvever.bak ]  && cp $pvejs $pvejs.$pvever.bak
 	
@@ -435,7 +435,7 @@ if ! grep -q 'modbyshowtempfreq' $pvejs ;then
 		
 		$dmode && sed -n "/pveversion/,+8p" $pvejs
 	else
-		echo '找不到pvemanagerlib.js文件的修改點'
+		echo '找不到pvemanagerlib.js檔案的修改點'
 		fail
 	fi
 
@@ -444,7 +444,7 @@ if ! grep -q 'modbyshowtempfreq' $pvejs ;then
 	#統計加了幾條
 	addRs=$(grep -c '\$res' $contentfornp)
 	addHei=$(( 28 * addRs))
-	$dmode && echo "添加了$addRs條內容,增加高度為:${addHei}px"
+	$dmode && echo "新增了$addRs條內容,增加高度為:${addHei}px"
 
 
 	#原高度300
@@ -511,7 +511,7 @@ fi
 echo 溫度，頻率，硬碟訊息相關修改已完成
 echo ------------------------
 echo ------------------------
-echo 開始修改proxmoxlib.js文件
+echo 開始修改proxmoxlib.js檔案
 echo 去除訂閱彈窗
 
 if ! grep -q 'modbyshowtempfreq' $plibjs ;then
@@ -537,8 +537,8 @@ else
 fi
 echo -e "------------------------
 修改完成
-請刷新瀏覽器快取：\033[31mShift+F5\033[0m
-如果你看到主頁面提示連接錯誤或者沒看到溫度和頻率，請按：\033[31mShift+F5\033[0m，刷新瀏覽器快取！
+請重新整理瀏覽器快取：\033[31mShift+F5\033[0m
+如果你看到主頁面提示連接錯誤或者沒看到溫度和頻率，請按：\033[31mShift+F5\033[0m，重新整理瀏覽器快取！
 如果你對效果不滿意，請執行：\033[31m\"$sap\" restore\033[0m 命令，可以還原修改
 "
 
